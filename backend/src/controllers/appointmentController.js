@@ -147,18 +147,36 @@ exports.deleteAppointment = async (req, res) => {
       });
     }
 
-    // Patient can delete only their own appointment
+    // --- PATIENT AUTHORIZATION ---
     if (req.user.role === "patient") {
-      if (appointment.patientId.toString() !== req.user.userId) {
-        return res.status(403).json({ success: false, message: "Not authorized" });
+      // Use toString() on both sides to avoid Object vs String comparison issues
+      const patientIdInDb = appointment.patientId.toString();
+      const userIdFromToken = req.user.userId.toString();
+
+      if (patientIdInDb !== userIdFromToken) {
+        return res.status(403).json({ 
+          success: false, 
+          message: "Not authorized: You do not own this appointment" 
+        });
       }
     }
 
-    // Doctor can delete only their own appointment
+    // --- DOCTOR AUTHORIZATION ---
     if (req.user.role === "doctor") {
       const doctorProfile = await Doctor.findOne({ userId: req.user.userId });
-      if (!doctorProfile || appointment.doctorId.toString() !== doctorProfile._id.toString()) {
-        return res.status(403).json({ success: false, message: "Not authorized" });
+      
+      if (!doctorProfile) {
+        return res.status(404).json({ success: false, message: "Doctor profile not found" });
+      }
+
+      const doctorIdInAppt = appointment.doctorId.toString();
+      const doctorProfileId = doctorProfile._id.toString();
+
+      if (doctorIdInAppt !== doctorProfileId) {
+        return res.status(403).json({ 
+          success: false, 
+          message: "Not authorized: This appointment is not assigned to you" 
+        });
       }
     }
 
