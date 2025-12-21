@@ -2,12 +2,12 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../../api/axios";
 import { toast } from "react-toastify";
-import { 
-  Calendar as CalendarIcon, 
-  Clock, 
-  User, 
-  ArrowLeft, 
-  Star, 
+import {
+  Calendar as CalendarIcon,
+  Clock,
+  User,
+  ArrowLeft,
+  Star,
   ShieldCheck,
   CreditCard
 } from "lucide-react";
@@ -82,7 +82,7 @@ const BookAppointment = () => {
 
       <div className="max-w-5xl mx-auto px-4 py-12">
         {/* Navigation */}
-        <button 
+        <button
           onClick={() => navigate(-1)}
           className="flex items-center gap-2 text-slate-500 hover:text-primary transition-colors mb-8 font-medium"
         >
@@ -90,7 +90,7 @@ const BookAppointment = () => {
         </button>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          
+
           {/* LEFT COLUMN: DOCTOR PROFILE CARD */}
           <div className="lg:col-span-1">
             <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 sticky top-8">
@@ -102,7 +102,7 @@ const BookAppointment = () => {
                 <p className="text-primary font-medium text-sm px-3 py-1 bg-blue-50 rounded-full mt-2">
                   {doctor.specialization}
                 </p>
-                
+
                 <div className="flex items-center gap-1 mt-4 text-amber-500">
                   {[...Array(5)].map((_, i) => <Star key={i} size={14} fill="currentColor" />)}
                   <span className="text-slate-400 text-xs ml-1">(4.8/5)</span>
@@ -139,17 +139,33 @@ const BookAppointment = () => {
               <form onSubmit={handleSubmit} className="space-y-8">
                 {/* Date Picker */}
                 <div>
-                  <label className="block text-sm font-bold text-slate-700 mb-3">1. Choose Date</label>
-                  <div className="relative">
+                  <label className="block text-sm font-bold text-slate-700 mb-3">
+                    1. Choose Date
+                  </label>
+                  <div className="relative group">
                     <input
                       type="date"
                       min={today}
-                      className="input input-bordered w-full pl-12 rounded-xl focus:ring-2 ring-primary/20 bg-slate-50/50 border-slate-200"
+                      className="input input-bordered w-full pl-12 rounded-xl 
+                 focus:ring-2 ring-primary/20 bg-slate-50/50 border-slate-200
+                 text-slate-900 font-semibold cursor-pointer
+                 /* Custom styling for the date icon to make it clickable across the whole input */
+                 [&::-webkit-calendar-picker-indicator]:absolute 
+                 [&::-webkit-calendar-picker-indicator]:left-0 
+                 [&::-webkit-calendar-picker-indicator]:top-0 
+                 [&::-webkit-calendar-picker-indicator]:w-full 
+                 [&::-webkit-calendar-picker-indicator]:h-full 
+                 [&::-webkit-calendar-picker-indicator]:opacity-0 
+                 [&::-webkit-calendar-picker-indicator]:cursor-pointer"
                       value={date}
                       onChange={(e) => setDate(e.target.value)}
+                      onClick={(e) => e.target.showPicker && e.target.showPicker()}
                       required
                     />
-                    <CalendarIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
+                    <CalendarIcon
+                      className="absolute left-4 top-1/2 -translate-y-1/2 text-primary pointer-events-none group-hover:scale-110 transition-transform"
+                      size={20}
+                    />
                   </div>
                 </div>
 
@@ -165,11 +181,10 @@ const BookAppointment = () => {
                           key={index}
                           type="button"
                           onClick={() => setTime(slot)}
-                          className={`flex items-center justify-center gap-2 py-3 rounded-xl border-2 transition-all font-medium text-sm ${
-                            time === slot 
-                              ? "border-primary bg-primary text-white shadow-lg shadow-primary/20 scale-95" 
+                          className={`flex items-center justify-center gap-2 py-3 rounded-xl border-2 transition-all font-medium text-sm ${time === slot
+                              ? "border-primary bg-primary text-white shadow-lg shadow-primary/20 scale-95"
                               : "border-slate-100 bg-white text-slate-600 hover:border-slate-200"
-                          }`}
+                            }`}
                         >
                           <Clock size={14} /> {slot}
                         </button>
@@ -184,13 +199,13 @@ const BookAppointment = () => {
                     <CreditCard size={18} /> Booking Summary
                   </h4>
                   <p className="text-sm text-indigo-700">
-                    {date && time 
+                    {date && time
                       ? `Your visit is scheduled for Dr. ${doctor.userId?.name} on ${date} at ${time}.`
                       : "Please select a date and time to continue."}
                   </p>
                 </div>
 
-                <button 
+                <button
                   className={`btn btn-primary w-full h-14 rounded-2xl text-lg font-bold shadow-xl shadow-primary/20 transition-all ${isSubmitting ? 'loading' : ''}`}
                   type="submit"
                   disabled={isSubmitting || !date || !time}
