@@ -58,7 +58,7 @@ const BookAppointment = () => {
       });
 
       toast.success(res.data.message || "Appointment booked successfully!");
-      navigate("/my-appointments");
+      navigate("/dashboard/patient");
     } catch (error) {
       toast.error(error.response?.data?.message || "Booking failed");
     } finally {
