@@ -69,16 +69,6 @@ const PatientDashboard = () => {
             </h1>
             <p className="text-slate-500 mt-2">Manage your health, view your schedule, and book new consultations.</p>
           </div>
-          <div className="relative w-full md:w-96">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
-            <input 
-              type="text" 
-              placeholder="Search by specialty or doctor name..." 
-              className="input input-bordered w-full pl-12 rounded-2xl bg-slate-50 border-none focus:ring-2 ring-primary/20"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
