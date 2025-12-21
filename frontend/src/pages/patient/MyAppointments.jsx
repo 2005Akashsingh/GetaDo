@@ -37,7 +37,7 @@ const MyAppointments = () => {
   const handleCancel = async (id) => {
     if (!window.confirm("Are you sure you want to cancel this appointment?")) return;
     try {
-      await api.delete(`/patient/appointments/${id}`);
+      await api.delete(`/appointments/${id}`);
       toast.success("Appointment cancelled successfully");
       fetchAppointments(); // Refresh list
     } catch (error) {
