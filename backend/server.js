@@ -18,7 +18,7 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(
   cors({
-    origin: "https://getadoc.onrender.com", //
+    origin: ["https://geta-doc.vercel.app", "http://localhost:5173"],
     credentials: true,               // allow cookies
   })
 );
