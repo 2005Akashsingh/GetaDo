@@ -83,15 +83,24 @@
   </li>
   <li>
     <strong>Install Backend Dependencies:</strong>
-    <pre><code>cd backend && npm install</code></pre>
+    <pre><code>cd backend <br> npm install</code></pre>
   </li>
   <li>
     <strong>Install Frontend Dependencies:</strong>
-    <pre><code>cd ../frontend && npm install</code></pre>
+    <pre><code>cd frontend <br> npm install</code></pre>
   </li>
   <li>
     <strong>Set up Environment Variables:</strong>
-    <p>Create a <code>.env</code> file in the <code>/backend</code> directory and add your MongoDB URI and JWT Secret.</p>
+    <p>Create a <code>.env</code> file in the <code>/backend</code> directory and add your MongoDB URI and JWT Secret and SMTP username and password and a sender Email.</p>
+    <code>
+      PORT=8000
+      MONGO_URL='mongodb+srv://<username>:<password>@clustername.23gvics.mongodb.net/doctor_app'
+      JWT_SECRET='yourjwtsecret'
+      NODE_ENV='development'
+      SMTP_USER='xyz123@smtp-brevo.com'
+      SMTP_PASS='xsmtpsib-11111111111sample1111111111111'
+      SENDER_EMAIL='xyz@gmail.com'
+    </code>
   </li>
 </ol>
 
