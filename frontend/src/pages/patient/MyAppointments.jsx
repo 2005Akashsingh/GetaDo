@@ -5,11 +5,11 @@ import {
   Calendar, 
   Clock, 
   FileText, 
-  Search, 
   Pill, 
   ClipboardList, 
   Printer,
-  Stethoscope
+  Stethoscope,
+  Trash2 // Imported Trash icon
 } from "lucide-react";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
@@ -34,6 +34,19 @@ const MyAppointments = () => {
     fetchAppointments();
   }, []);
 
+  // NEW: Delete Functionality
+  const handleDelete = async (id) => {
+    if (!window.confirm("Are you sure you want to cancel and delete this appointment?")) return;
+    
+    try {
+      await api.delete(`/appointments/${id}`);
+      toast.success("Appointment deleted successfully");
+      fetchAppointments(); // Refresh the list
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to delete appointment");
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-screen bg-slate-50">
@@ -47,7 +60,7 @@ const MyAppointments = () => {
       <Navbar />
 
       <main className="max-w-6xl mx-auto p-6 lg:p-10">
-        <div className="mb-10">
+        <div className="mb-10 text-center md:text-left">
           <h1 className="text-3xl font-extrabold text-slate-800">My Appointments</h1>
           <p className="text-slate-500">Track your bookings and view medical prescriptions</p>
         </div>
@@ -94,17 +107,30 @@ const MyAppointments = () => {
                     {appt.status}
                   </span>
 
-                  {appt.status === "completed" && (
-                    <button 
-                      onClick={() => {
-                        setSelectedAppt(appt);
-                        document.getElementById("view_prescription_modal").showModal();
-                      }}
-                      className="btn btn-primary btn-sm gap-2 rounded-xl"
-                    >
-                      <FileText size={16} /> View Prescription
-                    </button>
-                  )}
+                  <div className="flex items-center gap-2">
+                    {/* SHOW DELETE ONLY IF PENDING */}
+                    {appt.status === "pending" && (
+                      <button 
+                        onClick={() => handleDelete(appt._id)}
+                        className="btn btn-ghost btn-sm text-red-500 hover:bg-red-50 gap-2"
+                        title="Cancel Appointment"
+                      >
+                        <Trash2 size={16} /> Cancel
+                      </button>
+                    )}
+
+                    {appt.status === "completed" && (
+                      <button 
+                        onClick={() => {
+                          setSelectedAppt(appt);
+                          document.getElementById("view_prescription_modal").showModal();
+                        }}
+                        className="btn btn-primary btn-sm gap-2 rounded-xl"
+                      >
+                        <FileText size={16} /> View Prescription
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
             ))
@@ -114,7 +140,7 @@ const MyAppointments = () => {
 
       {/* --- PRESCRIPTION MODAL --- */}
       <dialog id="view_prescription_modal" className="modal modal-bottom sm:modal-middle">
-        <div className="modal-box max-w-3xl p-0 bg-white overflow-x-scroll">
+        <div className="modal-box max-w-3xl p-0 bg-white overflow-hidden">
           {/* Header */}
           <div className="p-6 bg-slate-50 border-b flex justify-between items-center">
             <div className="flex items-center gap-3">
@@ -124,21 +150,21 @@ const MyAppointments = () => {
               <h3 className="font-bold text-xl text-black">Medical Prescription</h3>
             </div>
             <form method="dialog">
-              <button className="btn btn-sm btn-circle btn-ghost bg-red-500">✕</button>
+              <button className="btn btn-sm btn-circle btn-ghost">✕</button>
             </form>
           </div>
 
           {/* Content */}
-          <div className="p-8 space-y-8" id="printable-prescription">
-            <div className="flex justify-between items-start">
+          <div className="p-8 space-y-8 h-[60vh] overflow-y-auto" id="printable-prescription">
+            <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
               <div>
                 <p className="text-sm text-slate-500 uppercase tracking-wider font-semibold">Doctor Details</p>
-                <h4 className="text-lg font-medium text-gray-500">Dr. {selectedAppt?.doctorId?.userId?.name}</h4>
+                <h4 className="text-lg font-bold text-slate-800">Dr. {selectedAppt?.doctorId?.userId?.name}</h4>
                 <p className="text-sm text-slate-600">{selectedAppt?.doctorId?.specialization}</p>
               </div>
-              <div className="text-right">
+              <div className="sm:text-right">
                 <p className="text-sm text-slate-500 uppercase tracking-wider font-semibold">Date</p>
-                <p className="font-medium text-gray-500">{selectedAppt?.date}</p>
+                <p className="font-bold text-slate-800">{selectedAppt?.date}</p>
               </div>
             </div>
 
@@ -149,7 +175,7 @@ const MyAppointments = () => {
               <h5 className="flex items-center gap-2 font-bold text-slate-800 mb-3">
                 <ClipboardList size={18} className="text-primary" /> Diagnosis & Clinical Notes
               </h5>
-              <p className="text-slate-700 bg-slate-50 p-5 rounded-2xl italic leading-relaxed">
+              <p className="text-slate-700 bg-slate-50 p-5 rounded-2xl italic leading-relaxed whitespace-pre-line">
                 {selectedAppt?.prescription?.content || "No specific notes provided."}
               </p>
             </div>
@@ -161,15 +187,15 @@ const MyAppointments = () => {
               </h5>
               <div className="overflow-x-auto border rounded-2xl border-slate-100">
                 <table className="table w-full">
-                  <thead className="bg-slate-50">
-                    <tr className="text-slate-600">
+                  <thead className="bg-slate-50 text-slate-700">
+                    <tr>
                       <th>Medicine</th>
                       <th>Dosage</th>
                       <th>Frequency</th>
                       <th>Duration</th>
                     </tr>
                   </thead>
-                  <tbody>
+                  <tbody className="text-slate-600">
                     {selectedAppt?.prescription?.medicines?.map((med, i) => (
                       <tr key={i} className="hover:bg-slate-50/50">
                         <td className="font-bold text-primary">{med.name}</td>
