@@ -45,11 +45,6 @@
   GetaDoc is a comprehensive <strong>MERN Stack</strong> healthcare platform. It is designed to modernize the patient-doctor experience through automated scheduling, secure medical data handling, and real-time management tools. By utilizing a modular architecture, the platform ensures that both the frontend and backend are scalable and easy to maintain.
 </p>
 
-
-
-[Image of MERN stack architecture diagram]
-
-
 <hr />
 
 <h2 id="key-features">✨ Key Features</h2>
@@ -57,7 +52,7 @@
   <li>🛡️ <strong>Secure Authentication:</strong> JWT-based login and role-based access for Patients, Doctors, and Admins.</li>
   <li>📅 <strong>Smart Scheduling:</strong> Book, reschedule, or cancel appointments with instant status updates.</li>
   <li>🧑‍⚕️ <strong>Doctor Management:</strong> Specialized profiles for doctors including availability slots and expertise.</li>
-  <li>📧 <strong>Notification System:</strong> Automated email alerts for appointment confirmations and reminders.</li>
+  <li>📧 <strong>Notification System:</strong> Automated email alerts for appointment confirmations and reminders via SMTP.</li>
   <li>🎨 <strong>Responsive UI:</strong> A clean, modern dashboard built with React and styled with DaisyUI/Tailwind.</li>
 </ul>
 
@@ -69,9 +64,7 @@
 <p>To run this project locally, you must have the following installed:</p>
 <ul>
   <li><strong>MongoDB:</strong> A local instance or a <a href="https://www.mongodb.com/cloud/atlas">MongoDB Atlas</a> cloud account.</li>
-  <li><strong>Express:</strong> Web framework for Node.js.</li>
-  <li><strong>React:</strong> Frontend library (Node.js v16+ required).</li>
-  <li><strong>Node.js:</strong> JavaScript runtime for the backend.</li>
+  <li><strong>Node.js:</strong> JavaScript runtime (v16+ required).</li>
   <li><strong>npm:</strong> Package manager for installing dependencies.</li>
 </ul>
 
@@ -83,37 +76,39 @@
   </li>
   <li>
     <strong>Install Backend Dependencies:</strong>
-    <pre><code>cd backend <br> npm install</code></pre>
+    <pre><code>cd backend
+npm install</code></pre>
   </li>
   <li>
     <strong>Install Frontend Dependencies:</strong>
-    <pre><code>cd frontend <br> npm install</code></pre>
+    <pre><code>cd ../frontend
+npm install</code></pre>
   </li>
   <li>
     <strong>Set up Environment Variables:</strong>
-    <p>Create a <code>.env</code> file in the <code>/backend</code> directory and add your MongoDB URI and JWT Secret and SMTP username and password and a sender Email.</p>
-    <code>
-      PORT=8000
-      MONGO_URL='mongodb+srv://<username>:<password>@clustername.23gvics.mongodb.net/doctor_app'
-      JWT_SECRET='yourjwtsecret'
-      NODE_ENV='development'
-      SMTP_USER='xyz123@smtp-brevo.com'
-      SMTP_PASS='xsmtpsib-11111111111sample1111111111111'
-      SENDER_EMAIL='xyz@gmail.com'
-    </code>
+    <p>Create a <code>.env</code> file in the <code>/backend</code> directory and add the following configuration:</p>
+<pre><code>PORT=8000
+MONGO_URL='your_mongodb_connection_string'
+JWT_SECRET='your_jwt_secret'
+NODE_ENV='development'
+SMTP_USER='your_smtp_username'
+SMTP_PASS='your_smtp_password'
+SENDER_EMAIL='your_sender_email@example.com'</code></pre>
   </li>
 </ol>
 
 <hr />
 
 <h2 id="usage">💡 Usage</h2>
-<p>To run the application, you will need to open two terminals:</p>
+<p>To run the application, open two separate terminals:</p>
 
 <p><strong>Terminal 1 (Backend):</strong></p>
-<pre><code>cd backend && npm start</code></pre>
+<pre><code>cd backend
+npm start</code></pre>
 
 <p><strong>Terminal 2 (Frontend):</strong></p>
-<pre><code>cd frontend && npm run dev</code></pre>
+<pre><code>cd frontend
+npm run dev</code></pre>
 
 <hr />
 
