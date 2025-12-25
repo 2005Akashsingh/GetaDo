@@ -52,6 +52,7 @@ const PatientDashboard = () => {
         setDoctors(docRes.data.doctors || []);
         setMyAppointments(apptRes.data.appointments || []);
       } catch (error) {
+        console.error("Error fetching dashboard data:", error);
         toast.error("Failed to sync dashboard data");
       } finally {
         setLoading(false);

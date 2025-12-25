@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import { useEffect, useState } from "react";
 import api from "../../api/axios";
 import { toast } from "react-toastify";
