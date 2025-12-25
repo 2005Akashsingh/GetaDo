@@ -30,7 +30,7 @@ exports.createDoctorProfile = async (req, res) => {
 
     res.status(201).json({
       success: true,
-      message: "Doctor profile created",
+      message: "Doctor profile Created",
       doctor,
     });
   } catch (error) {

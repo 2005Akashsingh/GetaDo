@@ -149,7 +149,6 @@ const BookAppointment = () => {
                       className="input input-bordered w-full pl-12 rounded-xl 
                  focus:ring-2 ring-primary/20 bg-slate-50/50 border-slate-200
                  text-slate-900 font-semibold cursor-pointer
-                 /* Custom styling for the date icon to make it clickable across the whole input */
                  [&::-webkit-calendar-picker-indicator]:absolute 
                  [&::-webkit-calendar-picker-indicator]:left-0 
                  [&::-webkit-calendar-picker-indicator]:top-0 
