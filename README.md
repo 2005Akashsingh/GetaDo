@@ -49,10 +49,12 @@
 
 <h2 id="key-features">✨ Key Features</h2>
 <ul>
-  <li>🛡️ <strong>Secure Authentication:</strong> JWT-based login and role-based access for Patients, Doctors, and Admins.</li>
+  <li>🛡️ <strong>Secure Authentication:</strong> JWT-based login, email OTP verification at signup, and OTP-based password reset.</li>
+  <li>🔐 <strong>Role-Based Access:</strong> Enforced both server-side and in the frontend routing for Patients, Doctors, and Admins.</li>
   <li>📅 <strong>Smart Scheduling:</strong> Book, reschedule, or cancel appointments with instant status updates.</li>
   <li>🧑‍⚕️ <strong>Doctor Management:</strong> Specialized profiles for doctors including availability slots and expertise.</li>
-  <li>📧 <strong>Notification System:</strong> Automated email alerts for appointment confirmations and reminders via SMTP.</li>
+  <li>💳 <strong>Payments:</strong> Razorpay checkout on booking; appointments can't be approved until payment is confirmed.</li>
+  <li>🎥 <strong>Video Consultations (in progress):</strong> WebRTC signaling and live transcript relay over Socket.IO is built server-side; the call UI is still in progress.</li>
   <li>🎨 <strong>Responsive UI:</strong> A clean, modern dashboard built with React and styled with DaisyUI/Tailwind.</li>
 </ul>
 
@@ -86,14 +88,26 @@ npm install</code></pre>
   </li>
   <li>
     <strong>Set up Environment Variables:</strong>
-    <p>Create a <code>.env</code> file in the <code>/backend</code> directory and add the following configuration:</p>
+    <p>Create a <code>.env</code> file in the <code>/backend</code> directory. <code>PORT</code>, <code>MONGO_URL</code>, and <code>JWT_SECRET</code> are required; everything else is optional in development (the app logs a warning and degrades gracefully - OTP codes are printed to the server console, Razorpay falls back to non-functional mock keys) but required for that feature to actually work.</p>
 <pre><code>PORT=8000
 MONGO_URL='your_mongodb_connection_string'
 JWT_SECRET='your_jwt_secret'
 NODE_ENV='development'
-SMTP_USER='your_smtp_username'
-SMTP_PASS='your_smtp_password'
-SENDER_EMAIL='your_sender_email@example.com'</code></pre>
+
+# Required for OTP emails (signup verification, password reset) to actually send.
+# Example: a Gmail address with a generated App Password (myaccount.google.com/apppasswords).
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER='your_email@example.com'
+SMTP_PASS='your_app_password'
+SMTP_FROM='GetADoc <your_email@example.com>'
+
+# Required for real payment checkout (Razorpay Test Mode keys).
+RAZORPAY_KEY_ID='rzp_test_...'
+RAZORPAY_KEY_SECRET='...'
+
+# Required for AI-generated consultation notes (Google AI Studio).
+GEMINI_API_KEY='...'</code></pre>
   </li>
 </ol>
 
