@@ -2,7 +2,16 @@ const express = require("express");
 const router = express.Router();
 
 
-const { signup, login, forgotPassword, resetPassword, logout, getMe} = require("../controllers/authController");
+const {
+  signup,
+  login,
+  logout,
+  getMe,
+  verifySignupOtp,
+  resendOtp,
+  forgotPassword,
+  resetPassword,
+} = require("../controllers/authController");
 const authMiddleware = require("../middleware/authMiddleware");
 
 // Register new user
@@ -16,6 +25,12 @@ router.get("/me", authMiddleware, getMe);
 
 //Logout user
 router.post("/logout", logout);
+
+// Verify OTP sent at signup
+router.post("/verify-otp", verifySignupOtp);
+
+// Resend OTP (signup verification or password reset)
+router.post("/resend-otp", resendOtp);
 
 // Send OTP for password reset
 router.post("/forgot-password", forgotPassword);

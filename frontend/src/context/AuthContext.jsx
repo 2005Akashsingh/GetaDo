@@ -31,6 +31,8 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   // 🔹 Login
+  // Returns { success, needsVerification?, email? } instead of a plain boolean
+  // so the caller can redirect to OTP verification when the account isn't verified yet.
   const login = async (formData) => {
     try {
       const res = await api.post("/auth/login", formData);
@@ -39,21 +41,74 @@ export const AuthProvider = ({ children }) => {
       // fetch user again after login
       const me = await api.get("/auth/me");
       setUser(me.data.user);
-      return true;
+      return { success: true };
     } catch (error) {
-      toast.error(error.response?.data?.message || "Login failed");
-      return false;
+      const data = error.response?.data;
+      if (data?.needsVerification) {
+        return { success: false, needsVerification: true, email: data.email };
+      }
+      toast.error(data?.message || "Login failed");
+      return { success: false };
     }
   };
 
   // 🔹 Signup
+  // Returns { success, email? } — email is used to route to the OTP verification screen.
   const signup = async (formData) => {
     try {
       const res = await api.post("/auth/signup", formData);
       toast.success(res.data.message || "Signup successful");
-      return true;
+      return { success: true, email: res.data.email };
     } catch (error) {
       toast.error(error.response?.data?.message || "Signup failed");
+      return { success: false };
+    }
+  };
+
+  // 🔹 Verify signup OTP
+  const verifyOtp = async (email, code) => {
+    try {
+      const res = await api.post("/auth/verify-otp", { email, code });
+      toast.success(res.data.message || "Email verified");
+      return true;
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Verification failed");
+      return false;
+    }
+  };
+
+  // 🔹 Resend OTP (signup verification or password reset)
+  const resendOtp = async (email, purpose) => {
+    try {
+      const res = await api.post("/auth/resend-otp", { email, purpose });
+      toast.success(res.data.message || "OTP resent");
+      return true;
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to resend OTP");
+      return false;
+    }
+  };
+
+  // 🔹 Request a password reset OTP
+  const forgotPassword = async (email) => {
+    try {
+      const res = await api.post("/auth/forgot-password", { email });
+      toast.success(res.data.message || "OTP sent");
+      return true;
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to send OTP");
+      return false;
+    }
+  };
+
+  // 🔹 Reset password using OTP
+  const resetPassword = async (email, code, newPassword) => {
+    try {
+      const res = await api.post("/auth/reset-password", { email, code, newPassword });
+      toast.success(res.data.message || "Password reset successful");
+      return true;
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to reset password");
       return false;
     }
   };
@@ -78,6 +133,10 @@ export const AuthProvider = ({ children }) => {
         login,
         signup,
         logout,
+        verifyOtp,
+        resendOtp,
+        forgotPassword,
+        resetPassword,
       }}
     >
       {children}

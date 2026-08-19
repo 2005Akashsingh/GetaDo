@@ -20,8 +20,10 @@ const Signup = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const success = await signup(formData);
-    if (success) navigate("/login");
+    const result = await signup(formData);
+    if (result.success) {
+      navigate("/verify-otp", { state: { email: result.email } });
+    }
   };
 
   return (

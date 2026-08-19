@@ -18,8 +18,12 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const success = await login(formData);
-    if (success) navigate("/dashboard");
+    const result = await login(formData);
+    if (result.success) {
+      navigate("/dashboard");
+    } else if (result.needsVerification) {
+      navigate("/verify-otp", { state: { email: result.email } });
+    }
   };
 
   return (
@@ -66,10 +70,7 @@ const Login = () => {
             <div className="form-control">
               <label className="label flex justify-between">
                 <span className="label-text font-medium">Password</span>
-                <Link
-                  to="/forgot-password"
-                  className="text-sm link link-primary"
-                >
+                <Link to="/forgot-password" className="text-sm link link-primary">
                   Forgot Password?
                 </Link>
               </label>

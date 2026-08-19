@@ -1,48 +1,74 @@
 import { useState } from "react";
-import api from "../api/axios";
-import { toast } from "react-toastify";
 import { useNavigate, Link } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import { ArrowLeft, KeyRound } from "lucide-react";
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState("");
+  const [loading, setLoading] = useState(false);
+  const { forgotPassword } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    try {
-      const res = await api.post("/auth/forgot-password", { email });
-      toast.success(res.data.message || "OTP sent to email");
-      navigate("/reset-password", { state: { email } });
-    } catch (error) {
-      toast.error(error.response?.data?.message || "Something went wrong");
-    }
+    setLoading(true);
+    const success = await forgotPassword(email);
+    setLoading(false);
+    if (success) navigate("/reset-password", { state: { email } });
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-base-200">
-      <div className="card w-full max-w-md shadow-xl bg-base-100">
-        <div className="card-body">
-          <h2 className="text-xl font-bold text-center">Forgot Password</h2>
+    <div className="min-h-screen flex items-center justify-center bg-base-200 px-4 relative">
+      <div className="absolute top-8 left-8">
+        <button
+          onClick={() => navigate("/")}
+          className="btn btn-ghost gap-2 normal-case hover:bg-base-300 rounded-2xl group"
+        >
+          <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
+          <span className="hidden sm:inline font-semibold">Back to Home</span>
+        </button>
+      </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <input
-              type="email"
-              className="input input-bordered w-full"
-              placeholder="Enter your email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
+      <div className="w-full max-w-md bg-base-100 rounded-2xl shadow-xl">
+        <div className="p-8">
+          <div className="flex justify-center mb-4 text-primary">
+            <KeyRound size={40} />
+          </div>
+          <h2 className="text-3xl font-bold text-center mb-2">Forgot Password</h2>
+          <p className="text-sm text-center text-gray-500 mb-6">
+            Enter your email and we'll send you an OTP to reset your password
+          </p>
 
-            <button className="btn btn-primary w-full" type="submit">
-              Send OTP
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div className="form-control">
+              <label className="label">
+                <span className="label-text font-medium">Email</span>
+              </label>
+              <input
+                type="email"
+                className="input input-bordered w-full focus:input-primary"
+                placeholder="you@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
+
+            <button
+              type="submit"
+              className="btn btn-primary w-full mt-2 text-base tracking-wide"
+              disabled={loading}
+            >
+              {loading ? "Sending..." : "Send OTP"}
             </button>
           </form>
 
-          <p className="text-center text-sm mt-4">
-            <Link to="/login" className="link link-primary">
-              Back to Login
+          <div className="divider my-6">OR</div>
+
+          <p className="text-center text-sm">
+            Remembered your password?{" "}
+            <Link to="/login" className="link link-primary font-medium">
+              Login
             </Link>
           </p>
         </div>

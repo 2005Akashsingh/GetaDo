@@ -1,23 +1,22 @@
 import { useState } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { ArrowLeft, ShieldCheck } from "lucide-react";
+import { ArrowLeft, MailCheck } from "lucide-react";
 
-const ResetPassword = () => {
+const VerifyOtp = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { resetPassword, resendOtp } = useAuth();
+  const { verifyOtp, resendOtp } = useAuth();
 
   const [email, setEmail] = useState(location.state?.email || "");
   const [code, setCode] = useState("");
-  const [newPassword, setNewPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [resending, setResending] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    const success = await resetPassword(email, code, newPassword);
+    const success = await verifyOtp(email, code);
     setLoading(false);
     if (success) navigate("/login");
   };
@@ -25,7 +24,7 @@ const ResetPassword = () => {
   const handleResend = async () => {
     if (!email) return;
     setResending(true);
-    await resendOtp(email, "reset");
+    await resendOtp(email, "signup");
     setResending(false);
   };
 
@@ -44,11 +43,11 @@ const ResetPassword = () => {
       <div className="w-full max-w-md bg-base-100 rounded-2xl shadow-xl">
         <div className="p-8">
           <div className="flex justify-center mb-4 text-primary">
-            <ShieldCheck size={40} />
+            <MailCheck size={40} />
           </div>
-          <h2 className="text-3xl font-bold text-center mb-2">Reset Password</h2>
+          <h2 className="text-3xl font-bold text-center mb-2">Verify Your Email</h2>
           <p className="text-sm text-center text-gray-500 mb-6">
-            Enter the OTP sent to your email and choose a new password
+            Enter the 6-digit code we sent to your email
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-5">
@@ -82,26 +81,12 @@ const ResetPassword = () => {
               />
             </div>
 
-            <div className="form-control">
-              <label className="label">
-                <span className="label-text font-medium">New Password</span>
-              </label>
-              <input
-                type="password"
-                className="input input-bordered w-full focus:input-primary"
-                placeholder="••••••••"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                required
-              />
-            </div>
-
             <button
               type="submit"
               className="btn btn-primary w-full mt-2 text-base tracking-wide"
               disabled={loading}
             >
-              {loading ? "Resetting..." : "Reset Password"}
+              {loading ? "Verifying..." : "Verify Email"}
             </button>
           </form>
 
@@ -129,4 +114,4 @@ const ResetPassword = () => {
   );
 };
 
-export default ResetPassword;
+export default VerifyOtp;

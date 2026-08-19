@@ -26,7 +26,7 @@ const DoctorSignup = () => {
       const res = await api.post("/doctor/signup", formData);
 
       toast.success(res.data.message || "Doctor account created");
-      navigate("/login");
+      navigate("/verify-otp", { state: { email: res.data.email } });
     } catch (error) {
       toast.error(
         error.response?.data?.message || "Doctor signup failed"

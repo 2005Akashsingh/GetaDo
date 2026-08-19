@@ -1,6 +1,6 @@
 const User = require("../models/User");
 const bcrypt = require("bcryptjs");
-const transporter = require('../config/nodemailer');
+const otpService = require("../services/otpService");
 
 exports.doctorSignup = async (req, res) => {
   try {
@@ -30,23 +30,13 @@ exports.doctorSignup = async (req, res) => {
       role: "doctor", // SET BY ROUTE
     });
 
-     await transporter.sendMail({
-      from: process.env.SENDER_EMAIL,
-      to: email,
-      subject: "Welcome to GetaDoc – Doctor Account Created",
-      html: `
-        <h2>Hello Dr. ${name},</h2>
-        <p>Your doctor account has been successfully created on <b>GetaDoc</b>.</p>
-        <p>Please log in and complete your doctor profile to start receiving appointments.</p>
-        <br />
-        <p>Regards,<br/>GetaDoc Team</p>
-      `,
-    });
+    await otpService.generateAndSendOtp(email, "signup");
 
     res.status(201).json({
       success: true,
-      message: "Doctor account created. Please complete your profile.",
+      message: "Doctor account created. Please verify the OTP sent to your email.",
       userId: user._id,
+      email: user.email,
     });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });

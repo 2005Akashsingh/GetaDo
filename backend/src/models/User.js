@@ -23,12 +23,9 @@ const userSchema = new mongoose.Schema(
       enum: ["patient", "doctor", "admin"],
       default: "patient",
     },
-    resetOtp: {
-      type: String,
-      default: "",
-    },
-    resetOtpExpire: {
-      type: Date,
+    isVerified: {
+      type: Boolean,
+      default: false,
     },
   },
   { timestamps: true }
