@@ -1,8 +1,9 @@
 import { Navigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
-const ProtectedRoute = ({ children }) => {
-  const { isAuthenticated, loading } = useAuth();
+// roles: optional array of allowed roles (e.g. ["doctor"]). Omit to allow any authenticated user.
+const ProtectedRoute = ({ children, roles }) => {
+  const { isAuthenticated, loading, user } = useAuth();
 
   // 🔹 Still checking auth (JWT + /auth/me)
   if (loading) {
@@ -18,7 +19,12 @@ const ProtectedRoute = ({ children }) => {
     return <Navigate to="/login" replace />;
   }
 
-  // 🔹 Logged in → allow access
+  // 🔹 Logged in, but wrong role for this section
+  if (roles && !roles.includes(user.role)) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  // 🔹 Logged in and authorized → allow access
   return children;
 };
 

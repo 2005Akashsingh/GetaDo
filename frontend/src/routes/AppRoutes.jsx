@@ -51,7 +51,7 @@ const AppRoutes = () => {
         <Route
           path="/dashboard/patient"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute roles={["patient"]}>
               <PatientDashboard />
             </ProtectedRoute>
           }
@@ -59,7 +59,7 @@ const AppRoutes = () => {
         <Route
           path="/dashboard/patient/book/:doctorId"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute roles={["patient"]}>
               <BookAppointment />
             </ProtectedRoute>
           }
@@ -67,7 +67,7 @@ const AppRoutes = () => {
         <Route
           path="/dashboard/patient/appointments"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute roles={["patient"]}>
               <MyAppointments />
             </ProtectedRoute>
           }
@@ -79,7 +79,7 @@ const AppRoutes = () => {
         <Route
           path="/dashboard/doctor"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute roles={["doctor"]}>
               <DoctorDashboard />
             </ProtectedRoute>
           }
@@ -87,7 +87,7 @@ const AppRoutes = () => {
         <Route
           path="/dashboard/doctor/appointments"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute roles={["doctor"]}>
               <DoctorAppointments />
             </ProtectedRoute>
           }
@@ -95,7 +95,7 @@ const AppRoutes = () => {
         <Route
           path="/dashboard/doctor/profile"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute roles={["doctor"]}>
               <DoctorProfile />
             </ProtectedRoute>
           }
@@ -105,7 +105,7 @@ const AppRoutes = () => {
         <Route
           path="/dashboard/admin"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute roles={["admin"]}>
               <AdminDashboard />
             </ProtectedRoute>
           }
