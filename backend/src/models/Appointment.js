@@ -14,7 +14,7 @@ const appointmentSchema = new mongoose.Schema(
     },
     date: { type: String, required: true },
     time: { type: String, required: true },
-    
+
     // Updated enum to include 'completed'
     status: {
       type: String,
@@ -26,6 +26,11 @@ const appointmentSchema = new mongoose.Schema(
     visited: {
       type: Boolean,
       default: false,
+    },
+    paymentStatus: {
+      type: String,
+      enum: ["unpaid", "paid"],
+      default: "unpaid",
     },
     prescription: {
       content: { type: String }, // General notes or diagnosis

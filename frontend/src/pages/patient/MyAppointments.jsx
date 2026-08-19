@@ -2,23 +2,28 @@
 import { useEffect, useState } from "react";
 import api from "../../api/axios";
 import { toast } from "react-toastify";
-import { 
-  Calendar, 
-  Clock, 
-  FileText, 
-  Pill, 
-  ClipboardList, 
+import {
+  Calendar,
+  Clock,
+  FileText,
+  Pill,
+  ClipboardList,
   Printer,
   Stethoscope,
-  Trash2 // Imported Trash icon
+  Trash2, // Imported Trash icon
+  CreditCard
 } from "lucide-react";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
+import { useAuth } from "../../context/AuthContext";
+import { openRazorpayCheckout } from "../../utils/razorpay";
 
 const MyAppointments = () => {
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedAppt, setSelectedAppt] = useState(null);
+  const [payingId, setPayingId] = useState(null);
+  const { user } = useAuth();
 
   const fetchAppointments = async () => {
     try {
@@ -45,6 +50,38 @@ const MyAppointments = () => {
       fetchAppointments(); // Refresh the list
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to delete appointment");
+    }
+  };
+
+  const handlePay = async (appt) => {
+    try {
+      setPayingId(appt._id);
+      const orderRes = await api.post("/payments/create-order", { appointmentId: appt._id });
+
+      await openRazorpayCheckout({
+        order: orderRes.data.data,
+        keyId: orderRes.data.key,
+        description: `Consultation with Dr. ${appt.doctorId?.userId?.name || "Doctor"}`,
+        prefill: { name: user?.name, email: user?.email },
+        onSuccess: async (response) => {
+          try {
+            await api.post("/payments/verify", {
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+            });
+            toast.success("Payment successful! Your appointment is confirmed.");
+            fetchAppointments();
+          } catch (err) {
+            toast.error(err.response?.data?.message || "Payment verification failed");
+          }
+        },
+        onFailure: () => toast.error("Payment failed. Please try again."),
+      });
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to start payment");
+    } finally {
+      setPayingId(null);
     }
   };
 
@@ -99,19 +136,37 @@ const MyAppointments = () => {
                 </div>
 
                 <div className="flex items-center justify-between md:justify-end gap-4 border-t md:border-none pt-4 md:pt-0">
-                  <span className={`badge badge-md font-bold px-4 py-3 border-none ${
-                    appt.status === "completed" ? "bg-blue-100 text-blue-700" :
-                    appt.status === "approved" ? "bg-emerald-100 text-emerald-700" :
-                    appt.status === "rejected" ? "bg-rose-100 text-rose-700" : 
-                    "bg-amber-100 text-amber-700"
-                  }`}>
-                    {appt.status}
-                  </span>
+                  <div className="flex flex-col items-end gap-1">
+                    <span className={`badge badge-md font-bold px-4 py-3 border-none ${
+                      appt.status === "completed" ? "bg-blue-100 text-blue-700" :
+                      appt.status === "approved" ? "bg-emerald-100 text-emerald-700" :
+                      appt.status === "rejected" ? "bg-rose-100 text-rose-700" :
+                      "bg-amber-100 text-amber-700"
+                    }`}>
+                      {appt.status}
+                    </span>
+                    <span className={`badge badge-sm border-none ${
+                      appt.paymentStatus === "paid" ? "bg-emerald-50 text-emerald-600" : "bg-slate-100 text-slate-500"
+                    }`}>
+                      {appt.paymentStatus === "paid" ? "Paid" : "Unpaid"}
+                    </span>
+                  </div>
 
                   <div className="flex items-center gap-2">
+                    {/* SHOW PAY NOW IF PENDING & UNPAID */}
+                    {appt.status === "pending" && appt.paymentStatus !== "paid" && (
+                      <button
+                        onClick={() => handlePay(appt)}
+                        className="btn btn-primary btn-sm gap-2 rounded-xl"
+                        disabled={payingId === appt._id}
+                      >
+                        <CreditCard size={16} /> {payingId === appt._id ? "Processing..." : "Pay Now"}
+                      </button>
+                    )}
+
                     {/* SHOW DELETE ONLY IF PENDING */}
                     {appt.status === "pending" && (
-                      <button 
+                      <button
                         onClick={() => handleDelete(appt._id)}
                         className="btn btn-ghost btn-sm text-red-500 hover:bg-red-50 gap-2"
                         title="Cancel Appointment"

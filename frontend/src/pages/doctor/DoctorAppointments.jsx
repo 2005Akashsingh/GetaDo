@@ -47,7 +47,7 @@ const DoctorAppointments = () => {
       toast.success(`Appointment ${status}`);
       fetchAppointments();
     } catch (error) {
-      toast.error("Failed to update status");
+      toast.error(error.response?.data?.message || "Failed to update status");
     }
   };
 
@@ -155,14 +155,21 @@ const DoctorAppointments = () => {
                         </div>
                       </td>
                       <td className="bg-slate-50/50 border-y border-slate-100">
-                        <span className={`badge badge-sm font-bold border-none py-3 px-4 ${
-                          appt.status === "completed" ? "bg-blue-600 text-white shadow-sm shadow-blue-200" :
-                          appt.status === "approved" ? "bg-emerald-100 text-emerald-700" :
-                          appt.status === "rejected" ? "bg-rose-100 text-rose-700" :
-                          "bg-amber-100 text-amber-700"
-                        }`}>
-                          {appt.status}
-                        </span>
+                        <div className="flex flex-col gap-1 items-start">
+                          <span className={`badge badge-sm font-bold border-none py-3 px-4 ${
+                            appt.status === "completed" ? "bg-blue-600 text-white shadow-sm shadow-blue-200" :
+                            appt.status === "approved" ? "bg-emerald-100 text-emerald-700" :
+                            appt.status === "rejected" ? "bg-rose-100 text-rose-700" :
+                            "bg-amber-100 text-amber-700"
+                          }`}>
+                            {appt.status}
+                          </span>
+                          <span className={`badge badge-xs border-none ${
+                            appt.paymentStatus === "paid" ? "bg-emerald-50 text-emerald-600" : "bg-slate-100 text-slate-500"
+                          }`}>
+                            {appt.paymentStatus === "paid" ? "Paid" : "Unpaid"}
+                          </span>
+                        </div>
                       </td>
                       <td className="bg-slate-50/50 rounded-r-2xl border-y border-r border-slate-100 text-right">
                         <div className="flex justify-end items-center gap-2 pr-2">

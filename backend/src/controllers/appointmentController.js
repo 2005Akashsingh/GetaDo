@@ -222,6 +222,13 @@ exports.updateAppointmentStatus = async (req, res) => {
       });
     }
 
+    if (status === "approved" && appointment.paymentStatus !== "paid") {
+      return res.status(400).json({
+        success: false,
+        message: "Cannot approve an unpaid appointment. Waiting on patient payment.",
+      });
+    }
+
     appointment.status = status;
     // Automatically mark visited if status is set to completed here
     if (status === "completed") {

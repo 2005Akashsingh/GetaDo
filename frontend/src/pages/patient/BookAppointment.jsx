@@ -14,10 +14,13 @@ import {
 } from "lucide-react";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
+import { useAuth } from "../../context/AuthContext";
+import { openRazorpayCheckout } from "../../utils/razorpay";
 
 const BookAppointment = () => {
   const { doctorId } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const [doctor, setDoctor] = useState(null);
   const [date, setDate] = useState("");
@@ -58,8 +61,39 @@ const BookAppointment = () => {
         time,
       });
 
-      toast.success(res.data.message || "Appointment booked successfully!");
-      navigate("/dashboard/patient");
+      toast.success(res.data.message || "Appointment booked! Complete payment to confirm.");
+
+      const appointmentId = res.data.appointment._id;
+      const orderRes = await api.post("/payments/create-order", { appointmentId });
+
+      await openRazorpayCheckout({
+        order: orderRes.data.data,
+        keyId: orderRes.data.key,
+        description: `Consultation with Dr. ${doctor.userId?.name}`,
+        prefill: { name: user?.name, email: user?.email },
+        onSuccess: async (response) => {
+          try {
+            await api.post("/payments/verify", {
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+            });
+            toast.success("Payment successful! Your appointment is confirmed.");
+          } catch (err) {
+            toast.error(err.response?.data?.message || "Payment verification failed");
+          } finally {
+            navigate("/dashboard/patient/appointments");
+          }
+        },
+        onDismiss: () => {
+          toast.info("Payment not completed. You can pay anytime from My Appointments.");
+          navigate("/dashboard/patient/appointments");
+        },
+        onFailure: () => {
+          toast.error("Payment failed. You can retry from My Appointments.");
+          navigate("/dashboard/patient/appointments");
+        },
+      });
     } catch (error) {
       toast.error(error.response?.data?.message || "Booking failed");
     } finally {
@@ -150,10 +184,7 @@ const BookAppointment = () => {
                       className="input input-bordered w-full pl-12 rounded-xl 
                  focus:ring-2 ring-primary/20 bg-slate-50/50 border-slate-200
                  text-slate-900 font-semibold cursor-pointer
-<<<<<<< Updated upstream
-=======
                  /* Custom styling for the date icon to make it clickable across the whole */
->>>>>>> Stashed changes
                  [&::-webkit-calendar-picker-indicator]:absolute 
                  [&::-webkit-calendar-picker-indicator]:left-0 
                  [&::-webkit-calendar-picker-indicator]:top-0 
@@ -186,8 +217,8 @@ const BookAppointment = () => {
                           type="button"
                           onClick={() => setTime(slot)}
                           className={`flex items-center justify-center gap-2 py-3 rounded-xl border-2 transition-all font-medium text-sm ${time === slot
-                              ? "border-primary bg-primary text-white shadow-lg shadow-primary/20 scale-95"
-                              : "border-slate-100 bg-white text-slate-600 hover:border-slate-200"
+                            ? "border-primary bg-primary text-white shadow-lg shadow-primary/20 scale-95"
+                            : "border-slate-100 bg-white text-slate-600 hover:border-slate-200"
                             }`}
                         >
                           <Clock size={14} /> {slot}
