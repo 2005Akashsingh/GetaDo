@@ -4,12 +4,15 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.jsx'
 import { AuthProvider } from './context/AuthContext.jsx'
+import { SocketProvider } from './context/SocketContext.jsx'
 import { ToastContainer } from 'react-toastify'
 import "react-toastify/dist/ReactToastify.css";
 
 createRoot(document.getElementById('root')).render(
   <AuthProvider>
-    <App />
-    <ToastContainer/>
+    <SocketProvider>
+      <App />
+      <ToastContainer/>
+    </SocketProvider>
   </AuthProvider>
 )

@@ -20,6 +20,8 @@ import DoctorSignup from "../pages/doctor/DoctorSignup";
 import AdminDashboard from "../pages/admin/AdminDashboard";
 import AdminLogin from "../pages/admin/AdminLogin";
 
+import VideoCall from "../pages/consultation/VideoCall";
+
 import ProtectedRoute from "../components/ProtectedRoute";
 
 const AppRoutes = () => {
@@ -109,6 +111,16 @@ const AppRoutes = () => {
           element={
             <ProtectedRoute roles={["admin"]}>
               <AdminDashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* 🎥 Video Consultation (patient or doctor) */}
+        <Route
+          path="/consultation/:appointmentId"
+          element={
+            <ProtectedRoute roles={["patient", "doctor"]}>
+              <VideoCall />
             </ProtectedRoute>
           }
         />

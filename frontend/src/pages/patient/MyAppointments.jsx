@@ -1,5 +1,6 @@
 /* eslint-disable no-unused-vars */
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import api from "../../api/axios";
 import { toast } from "react-toastify";
 import {
@@ -11,7 +12,8 @@ import {
   Printer,
   Stethoscope,
   Trash2, // Imported Trash icon
-  CreditCard
+  CreditCard,
+  Video
 } from "lucide-react";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
@@ -24,6 +26,7 @@ const MyAppointments = () => {
   const [selectedAppt, setSelectedAppt] = useState(null);
   const [payingId, setPayingId] = useState(null);
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   const fetchAppointments = async () => {
     try {
@@ -153,6 +156,16 @@ const MyAppointments = () => {
                   </div>
 
                   <div className="flex items-center gap-2">
+                    {/* SHOW JOIN CALL IF APPROVED (implies paid) */}
+                    {appt.status === "approved" && (
+                      <button
+                        onClick={() => navigate(`/consultation/${appt._id}`)}
+                        className="btn btn-success btn-sm gap-2 rounded-xl text-white"
+                      >
+                        <Video size={16} /> Join Call
+                      </button>
+                    )}
+
                     {/* SHOW PAY NOW IF PENDING & UNPAID */}
                     {appt.status === "pending" && appt.paymentStatus !== "paid" && (
                       <button

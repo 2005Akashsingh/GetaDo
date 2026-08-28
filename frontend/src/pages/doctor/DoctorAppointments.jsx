@@ -1,17 +1,18 @@
 import { useEffect, useState } from "react";
 import api from "../../api/axios";
 import { toast } from "react-toastify";
-import { 
-  Check, 
-  X, 
-  Trash2, 
-  Calendar, 
-  Clock, 
-  Filter, 
+import {
+  Check,
+  X,
+  Trash2,
+  Calendar,
+  Clock,
+  Filter,
   ArrowLeft,
   FileText,
   CheckCircle,
-  Stethoscope
+  Stethoscope,
+  Video
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../../components/Navbar";
@@ -193,17 +194,25 @@ const DoctorAppointments = () => {
                             </>
                           )}
 
-                          {/* --- ACTION: APPROVED (Write Prescription) --- */}
+                          {/* --- ACTION: APPROVED (Join Call / Write Prescription) --- */}
                           {appt.status === "approved" && (
-                            <button 
-                              onClick={() => {
-                                setSelectedAppt(appt);
-                                document.getElementById("appt_prescription_modal").showModal();
-                              }}
-                              className="btn btn-primary btn-sm gap-2 rounded-xl"
-                            >
-                              <FileText size={16} /> Prescribe
-                            </button>
+                            <>
+                              <button
+                                onClick={() => navigate(`/consultation/${appt._id}`)}
+                                className="btn btn-success btn-sm gap-2 rounded-xl text-white"
+                              >
+                                <Video size={16} /> Join Call
+                              </button>
+                              <button
+                                onClick={() => {
+                                  setSelectedAppt(appt);
+                                  document.getElementById("appt_prescription_modal").showModal();
+                                }}
+                                className="btn btn-primary btn-sm gap-2 rounded-xl"
+                              >
+                                <FileText size={16} /> Prescribe
+                              </button>
+                            </>
                           )}
 
                           {/* --- ACTION: COMPLETED --- */}
