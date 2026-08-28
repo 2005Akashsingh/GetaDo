@@ -18,6 +18,7 @@ import { useNavigate } from "react-router-dom";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import PrescriptionForm from "../../components/PrescriptionForm";
+import { isWithinJoinWindow, getJoinWindowState } from "../../utils/appointmentTime";
 
 const DoctorAppointments = () => {
   const [appointments, setAppointments] = useState([]);
@@ -25,6 +26,13 @@ const DoctorAppointments = () => {
   const [filter, setFilter] = useState("all"); // all, approved, pending, rejected, completed
   const [selectedAppt, setSelectedAppt] = useState(null);
   const navigate = useNavigate();
+
+  // Re-render periodically so the Join Call button appears/disappears as the time window opens/closes
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    const interval = setInterval(() => setTick((t) => t + 1), 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   const fetchAppointments = async () => {
     try {
@@ -197,12 +205,20 @@ const DoctorAppointments = () => {
                           {/* --- ACTION: APPROVED (Join Call / Write Prescription) --- */}
                           {appt.status === "approved" && (
                             <>
-                              <button
-                                onClick={() => navigate(`/consultation/${appt._id}`)}
-                                className="btn btn-success btn-sm gap-2 rounded-xl text-white"
-                              >
-                                <Video size={16} /> Join Call
-                              </button>
+                              {isWithinJoinWindow(appt.date, appt.time) ? (
+                                <button
+                                  onClick={() => navigate(`/consultation/${appt._id}`)}
+                                  className="btn btn-success btn-sm gap-2 rounded-xl text-white"
+                                >
+                                  <Video size={16} /> Join Call
+                                </button>
+                              ) : (
+                                <span className="text-xs text-slate-400 italic pr-2">
+                                  {getJoinWindowState(appt.date, appt.time) === "before"
+                                    ? `Opens 10 min before ${appt.time.split(" - ")[0]}`
+                                    : "Time slot passed"}
+                                </span>
+                              )}
                               <button
                                 onClick={() => {
                                   setSelectedAppt(appt);

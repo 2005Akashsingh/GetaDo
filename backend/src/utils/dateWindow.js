@@ -17,12 +17,21 @@ const isWithinBookingWindow = (dateStr) => {
   return dateStr >= todayStr && dateStr <= maxDateStr;
 };
 
+const parseTimeOnDate = (dateStr, hhmm) => {
+  const [hours, minutes] = hhmm.split(":").map(Number);
+  const d = new Date(`${dateStr}T00:00:00`);
+  d.setHours(hours, minutes, 0, 0);
+  return d;
+};
+
 const parseSlotStart = (dateStr, timeRange) => {
   const [startTime] = timeRange.split(" - ");
-  const [hours, minutes] = startTime.split(":").map(Number);
-  const slotDate = new Date(`${dateStr}T00:00:00`);
-  slotDate.setHours(hours, minutes, 0, 0);
-  return slotDate;
+  return parseTimeOnDate(dateStr, startTime);
+};
+
+const parseSlotRange = (dateStr, timeRange) => {
+  const [startTime, endTime] = timeRange.split(" - ");
+  return { start: parseTimeOnDate(dateStr, startTime), end: parseTimeOnDate(dateStr, endTime) };
 };
 
 // Only meaningful for today's date - any other date within the window is always "future"
@@ -32,4 +41,23 @@ const isSlotInFuture = (dateStr, timeRange) => {
   return parseSlotStart(dateStr, timeRange).getTime() > Date.now();
 };
 
-module.exports = { getBookingWindow, isWithinBookingWindow, isSlotInFuture };
+// Video call join window: opens shortly before the slot starts, stays open a bit
+// past the slot's end to allow for late joins/reconnects.
+const JOIN_WINDOW_BEFORE_MS = 10 * 60 * 1000;
+const JOIN_WINDOW_AFTER_MS = 15 * 60 * 1000;
+
+const isWithinJoinWindow = (dateStr, timeRange) => {
+  const { start, end } = parseSlotRange(dateStr, timeRange);
+  const now = Date.now();
+  return now >= start.getTime() - JOIN_WINDOW_BEFORE_MS && now <= end.getTime() + JOIN_WINDOW_AFTER_MS;
+};
+
+module.exports = {
+  getBookingWindow,
+  isWithinBookingWindow,
+  isSlotInFuture,
+  isWithinJoinWindow,
+  parseSlotRange,
+  JOIN_WINDOW_BEFORE_MS,
+  JOIN_WINDOW_AFTER_MS,
+};

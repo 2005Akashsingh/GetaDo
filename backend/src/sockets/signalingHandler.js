@@ -1,6 +1,7 @@
 const Appointment = require("../models/Appointment");
 const Doctor = require("../models/Doctor");
 const consultationService = require("../services/consultationService");
+const { isWithinJoinWindow } = require("../utils/dateWindow");
 
 const isParticipant = async (appointment, user) => {
   if (user.role === "patient") {
@@ -26,6 +27,12 @@ module.exports = function registerSignalingHandlers(io, socket) {
       }
       if (appointment.paymentStatus !== "paid") {
         return callback?.({ success: false, message: "Appointment payment is not complete" });
+      }
+      if (!isWithinJoinWindow(appointment.date, appointment.time)) {
+        return callback?.({
+          success: false,
+          message: "You can only join this call during its scheduled time slot",
+        });
       }
 
       const authorized = await isParticipant(appointment, socket.user);

@@ -19,6 +19,7 @@ import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import { useAuth } from "../../context/AuthContext";
 import { openRazorpayCheckout } from "../../utils/razorpay";
+import { isWithinJoinWindow, getJoinWindowState } from "../../utils/appointmentTime";
 
 const MyAppointments = () => {
   const [appointments, setAppointments] = useState([]);
@@ -27,6 +28,13 @@ const MyAppointments = () => {
   const [payingId, setPayingId] = useState(null);
   const { user } = useAuth();
   const navigate = useNavigate();
+
+  // Re-render periodically so the Join Call button appears/disappears as the time window opens/closes
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    const interval = setInterval(() => setTick((t) => t + 1), 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   const fetchAppointments = async () => {
     try {
@@ -156,14 +164,20 @@ const MyAppointments = () => {
                   </div>
 
                   <div className="flex items-center gap-2">
-                    {/* SHOW JOIN CALL IF APPROVED (implies paid) */}
-                    {appt.status === "approved" && (
+                    {/* JOIN CALL: approved + within the scheduled slot's time window */}
+                    {appt.status === "approved" && isWithinJoinWindow(appt.date, appt.time) && (
                       <button
                         onClick={() => navigate(`/consultation/${appt._id}`)}
                         className="btn btn-success btn-sm gap-2 rounded-xl text-white"
                       >
                         <Video size={16} /> Join Call
                       </button>
+                    )}
+                    {appt.status === "approved" && getJoinWindowState(appt.date, appt.time) === "before" && (
+                      <span className="text-xs text-slate-400 italic">Call opens 10 min before {appt.time.split(" - ")[0]}</span>
+                    )}
+                    {appt.status === "approved" && getJoinWindowState(appt.date, appt.time) === "after" && (
+                      <span className="text-xs text-slate-400 italic">This time slot has passed</span>
                     )}
 
                     {/* SHOW PAY NOW IF PENDING & UNPAID */}
