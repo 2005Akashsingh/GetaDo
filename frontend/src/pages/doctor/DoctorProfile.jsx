@@ -33,6 +33,7 @@ const DoctorProfile = () => {
   const [profile, setProfile] = useState(null);
   // Map of date -> array of time-slot strings, e.g. { "2026-08-28": ["09:00 - 09:20"] }
   const [slotsByDate, setSlotsByDate] = useState({});
+  const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const windowDates = getWindowDates();
@@ -79,9 +80,27 @@ const DoctorProfile = () => {
     }
   };
 
+  const fetchAppointments = async () => {
+    try {
+      const res = await api.get("/appointments/my-appointments");
+      setAppointments(res.data.appointments || []);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   useEffect(() => {
     fetchProfile();
+    fetchAppointments();
   }, []);
+
+  // date -> time -> "pending" | "approved", so the slot list can be color-coded
+  const bookingStatusByDate = {};
+  appointments.forEach((appt) => {
+    if (appt.status !== "pending" && appt.status !== "approved") return;
+    if (!bookingStatusByDate[appt.date]) bookingStatusByDate[appt.date] = {};
+    bookingStatusByDate[appt.date][appt.time] = appt.status;
+  });
 
   const handleCreateProfile = async (e) => {
     e.preventDefault();
@@ -335,21 +354,51 @@ const DoctorProfile = () => {
                 </div>
 
                 <div className="space-y-3 mb-8">
-                  <h3 className="text-sm font-bold text-slate-700 mb-4 px-1">Active Slots for {selectedDate}</h3>
+                  <div className="flex items-center justify-between mb-4 px-1">
+                    <h3 className="text-sm font-bold text-slate-700">Active Slots for {selectedDate}</h3>
+                    <div className="flex items-center gap-3 text-[11px] text-slate-500">
+                      <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-amber-400 inline-block" /> Pending</span>
+                      <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block" /> Approved</span>
+                    </div>
+                  </div>
                   {slots.length === 0 ? (
                     <p className="text-slate-400 text-sm text-center py-10 bg-slate-50/50 rounded-2xl border-2 border-dashed border-slate-100">
                       No slots added yet.
                     </p>
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      {slots.sort().map((slot, index) => (
-                        <div key={index} className="flex justify-between items-center bg-white border border-slate-100 p-4 rounded-2xl hover:shadow-sm transition-shadow">
-                          <span className="text-sm font-semibold text-slate-700">{slot}</span>
-                          <button className="btn btn-ghost btn-xs text-slate-400 hover:text-error" onClick={() => removeSlot(slot)}>
-                            <Trash2 size={16} />
-                          </button>
-                        </div>
-                      ))}
+                      {slots.sort().map((slot, index) => {
+                        const bookingStatus = bookingStatusByDate[selectedDate]?.[slot];
+                        const isBooked = !!bookingStatus;
+                        const cardClass =
+                          bookingStatus === "approved"
+                            ? "bg-emerald-50 border-emerald-200"
+                            : bookingStatus === "pending"
+                            ? "bg-amber-50 border-amber-200"
+                            : "bg-white border-slate-100";
+                        return (
+                          <div key={index} className={`flex justify-between items-center border p-4 rounded-2xl hover:shadow-sm transition-shadow ${cardClass}`}>
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-semibold text-slate-700">{slot}</span>
+                              {bookingStatus && (
+                                <span className={`badge badge-xs capitalize font-bold border-none ${
+                                  bookingStatus === "approved" ? "bg-emerald-500 text-white" : "bg-amber-400 text-white"
+                                }`}>
+                                  {bookingStatus}
+                                </span>
+                              )}
+                            </div>
+                            <button
+                              className="btn btn-ghost btn-xs text-slate-400 hover:text-error disabled:opacity-30"
+                              onClick={() => removeSlot(slot)}
+                              disabled={isBooked}
+                              title={isBooked ? "Can't remove a slot with a booking against it" : "Remove slot"}
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
+                        );
+                      })}
                     </div>
                   )}
                 </div>
