@@ -30,6 +30,28 @@ const BookAppointment = () => {
 
   // Get today's date in YYYY-MM-DD format for the date picker minimum
   const today = new Date().toISOString().split("T")[0];
+  // Bookings are only allowed within a 7-day rolling window (today through today+6),
+  // matching the backend's dateWindow helper (backend/src/utils/dateWindow.js)
+  const maxDate = (() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 6);
+    return d.toISOString().split("T")[0];
+  })();
+
+  const availableSlotsForDate = date
+    ? doctor?.availableSlots?.find((entry) => entry.date === date)?.slots || []
+    : [];
+
+  const visibleSlots =
+    date === today
+      ? availableSlotsForDate.filter((slot) => {
+          const [startTime] = slot.split(" - ");
+          const [hours, minutes] = startTime.split(":").map(Number);
+          const slotDate = new Date();
+          slotDate.setHours(hours, minutes, 0, 0);
+          return slotDate.getTime() > Date.now();
+        })
+      : availableSlotsForDate;
 
   useEffect(() => {
     const fetchDoctor = async () => {
@@ -181,19 +203,23 @@ const BookAppointment = () => {
                     <input
                       type="date"
                       min={today}
-                      className="input input-bordered w-full pl-12 rounded-xl 
+                      max={maxDate}
+                      className="input input-bordered w-full pl-12 rounded-xl
                  focus:ring-2 ring-primary/20 bg-slate-50/50 border-slate-200
                  text-slate-900 font-semibold cursor-pointer
                  /* Custom styling for the date icon to make it clickable across the whole */
-                 [&::-webkit-calendar-picker-indicator]:absolute 
-                 [&::-webkit-calendar-picker-indicator]:left-0 
-                 [&::-webkit-calendar-picker-indicator]:top-0 
-                 [&::-webkit-calendar-picker-indicator]:w-full 
-                 [&::-webkit-calendar-picker-indicator]:h-full 
-                 [&::-webkit-calendar-picker-indicator]:opacity-0 
+                 [&::-webkit-calendar-picker-indicator]:absolute
+                 [&::-webkit-calendar-picker-indicator]:left-0
+                 [&::-webkit-calendar-picker-indicator]:top-0
+                 [&::-webkit-calendar-picker-indicator]:w-full
+                 [&::-webkit-calendar-picker-indicator]:h-full
+                 [&::-webkit-calendar-picker-indicator]:opacity-0
                  [&::-webkit-calendar-picker-indicator]:cursor-pointer"
                       value={date}
-                      onChange={(e) => setDate(e.target.value)}
+                      onChange={(e) => {
+                        setDate(e.target.value);
+                        setTime("");
+                      }}
                       onClick={(e) => e.target.showPicker && e.target.showPicker()}
                       required
                     />
@@ -207,11 +233,13 @@ const BookAppointment = () => {
                 {/* Slot Grid */}
                 <div>
                   <label className="block text-sm font-bold text-slate-700 mb-3">2. Available Time Slots</label>
-                  {!doctor.availableSlots || doctor.availableSlots.length === 0 ? (
-                    <p className="text-sm text-slate-400 italic bg-slate-50 p-4 rounded-xl">No specific slots listed. Contact clinic for timing.</p>
+                  {!date ? (
+                    <p className="text-sm text-slate-400 italic bg-slate-50 p-4 rounded-xl">Choose a date to see available slots.</p>
+                  ) : visibleSlots.length === 0 ? (
+                    <p className="text-sm text-slate-400 italic bg-slate-50 p-4 rounded-xl">No slots available on this date. Try another day.</p>
                   ) : (
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                      {doctor.availableSlots.map((slot, index) => (
+                      {visibleSlots.map((slot, index) => (
                         <button
                           key={index}
                           type="button"

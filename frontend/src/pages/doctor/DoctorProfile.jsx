@@ -16,11 +16,30 @@ import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import { useAuth } from "../../context/AuthContext";
 
+// 7-day rolling window: today through today+6, "YYYY-MM-DD" (UTC-based, matches the
+// backend's dateWindow helper and the existing date-picker convention in BookAppointment.jsx)
+const getWindowDates = () => {
+  const dates = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date();
+    d.setDate(d.getDate() + i);
+    dates.push(d.toISOString().split("T")[0]);
+  }
+  return dates;
+};
+
 const DoctorProfile = () => {
   const { user } = useAuth();
   const [profile, setProfile] = useState(null);
-  const [slots, setSlots] = useState([]);
+  // Map of date -> array of time-slot strings, e.g. { "2026-08-28": ["09:00 - 09:20"] }
+  const [slotsByDate, setSlotsByDate] = useState({});
   const [loading, setLoading] = useState(true);
+
+  const windowDates = getWindowDates();
+  const [selectedDate, setSelectedDate] = useState(windowDates[0]);
+  const today = windowDates[0];
+  const isToday = selectedDate === today;
+  const slots = slotsByDate[selectedDate] || [];
 
   // Form state for creating a new profile
   const [formData, setFormData] = useState({
@@ -31,6 +50,7 @@ const DoctorProfile = () => {
 
   // Generate an array representing hours 0 to 23
   const hourOptions = Array.from({ length: 24 }, (_, i) => i);
+  const currentHour = new Date().getHours();
 
   const fetchProfile = async () => {
     try {
@@ -43,7 +63,11 @@ const DoctorProfile = () => {
 
       if (myDoctor) {
         setProfile(myDoctor);
-        setSlots(myDoctor.availableSlots || []);
+        const map = {};
+        (myDoctor.availableSlots || []).forEach((entry) => {
+          map[entry.date] = entry.slots || [];
+        });
+        setSlotsByDate(map);
       } else {
         setProfile(null);
       }
@@ -85,13 +109,13 @@ const DoctorProfile = () => {
     }
   };
 
-  // Logic to generate 3 slots of 20 mins for a specific hour
+  // Logic to generate 3 slots of 20 mins for a specific hour, on the selected date
   const generateSubSlots = (startHour) => {
     const newSubSlots = [];
     for (let i = 0; i < 60; i += 20) {
       const startMinutes = i.toString().padStart(2, "0");
       const endTotalMinutes = i + 20;
-      
+
       let endHour = startHour;
       let endMinutes = endTotalMinutes;
 
@@ -102,11 +126,11 @@ const DoctorProfile = () => {
 
       const startTime = `${startHour.toString().padStart(2, "0")}:${startMinutes}`;
       const endTime = `${endHour.toString().padStart(2, "0")}:${endMinutes.toString().padStart(2, "0")}`;
-      
+
       newSubSlots.push(`${startTime} - ${endTime}`);
     }
 
-    // Filter out slots that already exist in the list
+    // Filter out slots that already exist for this date
     const filteredNew = newSubSlots.filter((s) => !slots.includes(s));
 
     if (filteredNew.length === 0) {
@@ -114,20 +138,24 @@ const DoctorProfile = () => {
       return;
     }
 
-    setSlots([...slots, ...filteredNew]);
-    toast.success(`Added ${filteredNew.length} slots for ${startHour}:00`);
+    setSlotsByDate({ ...slotsByDate, [selectedDate]: [...slots, ...filteredNew] });
+    toast.success(`Added ${filteredNew.length} slots for ${startHour}:00 on ${selectedDate}`);
   };
 
   const removeSlot = (slotToRemove) => {
-    setSlots(slots.filter((s) => s !== slotToRemove));
+    setSlotsByDate({ ...slotsByDate, [selectedDate]: slots.filter((s) => s !== slotToRemove) });
   };
 
   const saveSlots = async () => {
     try {
-      await api.put("/doctors/availability", { availableSlots: slots });
+      const availableSlots = Object.entries(slotsByDate)
+        .filter(([, dateSlots]) => dateSlots.length > 0)
+        .map(([date, dateSlots]) => ({ date, slots: dateSlots }));
+
+      await api.put("/doctors/availability", { availableSlots });
       toast.success("Availability updated successfully");
     } catch (error) {
-      toast.error("Failed to update availability");
+      toast.error(error.response?.data?.message || "Failed to update availability");
       console.error(error);
     }
   };
@@ -249,21 +277,50 @@ const DoctorProfile = () => {
                   <h2 className="text-xl font-bold text-slate-800">Manage Availability</h2>
                 </div>
 
+                {/* --- DATE SELECTOR (next 7 days) --- */}
+                <div className="mb-6">
+                  <label className="text-sm font-bold text-slate-700 mb-3 block">Select Date</label>
+                  <div className="flex flex-wrap gap-2">
+                    {windowDates.map((date) => {
+                      const count = (slotsByDate[date] || []).length;
+                      return (
+                        <button
+                          key={date}
+                          onClick={() => setSelectedDate(date)}
+                          className={`px-4 py-2 rounded-xl border text-xs font-bold transition-all ${
+                            selectedDate === date
+                              ? "bg-primary text-white border-primary shadow-md"
+                              : "bg-white border-slate-200 text-slate-600 hover:border-primary hover:text-primary"
+                          }`}
+                        >
+                          {date === today ? "Today" : date}
+                          {count > 0 && <span className="ml-1 opacity-70">({count})</span>}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
                 {/* --- TIME SLOT SELECTOR GRID --- */}
                 <div className="bg-slate-50 p-6 rounded-2xl mb-8 border border-slate-100">
                   <label className="text-sm font-bold text-slate-700 mb-4 block">
-                    Select Hour to Add (24-Hour Format)
+                    Select Hour to Add for {selectedDate} (24-Hour Format)
                   </label>
                   <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
                     {hourOptions.map((hour) => {
                       const isAnySlotInHourAdded = slots.some(s => s.startsWith(`${hour.toString().padStart(2, '0')}:`));
+                      const isPastHour = isToday && hour < currentHour;
                       return (
                         <button
                           key={hour}
-                          onClick={() => generateSubSlots(hour)}
+                          onClick={() => !isPastHour && generateSubSlots(hour)}
+                          disabled={isPastHour}
+                          title={isPastHour ? "This hour has already passed today" : undefined}
                           className={`py-2 px-1 rounded-xl border text-xs font-bold transition-all ${
-                            isAnySlotInHourAdded 
-                            ? "bg-primary text-white border-primary shadow-md" 
+                            isPastHour
+                            ? "bg-slate-100 border-slate-100 text-slate-300 cursor-not-allowed"
+                            : isAnySlotInHourAdded
+                            ? "bg-primary text-white border-primary shadow-md"
                             : "bg-white border-slate-200 text-slate-600 hover:border-primary hover:text-primary"
                           }`}
                         >
@@ -273,12 +330,12 @@ const DoctorProfile = () => {
                     })}
                   </div>
                   <p className="text-[10px] text-slate-400 mt-4 italic">
-                    * Clicking an hour generates three 20-minute slots.
+                    * Clicking an hour generates three 20-minute slots for the selected date. You can set availability up to 7 days ahead.
                   </p>
                 </div>
 
                 <div className="space-y-3 mb-8">
-                  <h3 className="text-sm font-bold text-slate-700 mb-4 px-1">Current Active Slots</h3>
+                  <h3 className="text-sm font-bold text-slate-700 mb-4 px-1">Active Slots for {selectedDate}</h3>
                   {slots.length === 0 ? (
                     <p className="text-slate-400 text-sm text-center py-10 bg-slate-50/50 rounded-2xl border-2 border-dashed border-slate-100">
                       No slots added yet.

@@ -1,5 +1,6 @@
 const Appointment = require("../models/Appointment");
 const Doctor = require("../models/Doctor");
+const { isWithinBookingWindow, isSlotInFuture } = require("../utils/dateWindow");
 
 // Book a new appointment
 exports.bookAppointment = async (req, res) => {
@@ -18,6 +19,28 @@ exports.bookAppointment = async (req, res) => {
       return res.status(404).json({
         success: false,
         message: "Doctor not found",
+      });
+    }
+
+    if (!isWithinBookingWindow(date)) {
+      return res.status(400).json({
+        success: false,
+        message: "You can only book an appointment within the next 7 days",
+      });
+    }
+
+    if (!isSlotInFuture(date, time)) {
+      return res.status(400).json({
+        success: false,
+        message: "This time slot has already passed",
+      });
+    }
+
+    const dayAvailability = doctor.availableSlots.find((entry) => entry.date === date);
+    if (!dayAvailability || !dayAvailability.slots.includes(time)) {
+      return res.status(400).json({
+        success: false,
+        message: "This slot is not available",
       });
     }
 

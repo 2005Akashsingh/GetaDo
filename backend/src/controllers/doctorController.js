@@ -1,5 +1,8 @@
 const Doctor = require("../models/Doctor");
 const User = require("../models/User");
+const { isWithinBookingWindow } = require("../utils/dateWindow");
+
+const DATE_FORMAT = /^\d{4}-\d{2}-\d{2}$/;
 
 exports.createDoctorProfile = async (req, res) => {
   try {
@@ -74,6 +77,28 @@ exports.getDoctorById = async (req, res) => {
 exports.updateAvailability = async (req, res) => {
   try {
     const { availableSlots } = req.body;
+
+    if (!Array.isArray(availableSlots)) {
+      return res.status(400).json({
+        success: false,
+        message: "availableSlots must be an array of { date, slots }",
+      });
+    }
+
+    for (const entry of availableSlots) {
+      if (!entry.date || !DATE_FORMAT.test(entry.date)) {
+        return res.status(400).json({
+          success: false,
+          message: `Invalid date "${entry.date}" - expected YYYY-MM-DD`,
+        });
+      }
+      if (!isWithinBookingWindow(entry.date)) {
+        return res.status(400).json({
+          success: false,
+          message: `${entry.date} is outside the 7-day availability window`,
+        });
+      }
+    }
 
     const doctor = await Doctor.findOne({ userId: req.user.userId });
     if (!doctor) {

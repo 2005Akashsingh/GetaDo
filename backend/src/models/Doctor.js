@@ -26,7 +26,8 @@ const doctorSchema = new mongoose.Schema(
 
     availableSlots: [
       {
-        type: String,
+        date: { type: String, required: true }, // "YYYY-MM-DD"
+        slots: [{ type: String }], // ["09:00 - 09:20", ...]
       },
     ],
   },
