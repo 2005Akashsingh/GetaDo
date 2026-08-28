@@ -54,7 +54,7 @@
   <li>📅 <strong>Smart Scheduling:</strong> Book, reschedule, or cancel appointments with instant status updates.</li>
   <li>🧑‍⚕️ <strong>Doctor Management:</strong> Specialized profiles for doctors including availability slots and expertise.</li>
   <li>💳 <strong>Payments:</strong> Razorpay checkout on booking; appointments can't be approved until payment is confirmed.</li>
-  <li>🎥 <strong>Video Consultations (in progress):</strong> WebRTC signaling and live transcript relay over Socket.IO is built server-side; the call UI is still in progress.</li>
+  <li>🎥 <strong>Video Consultations:</strong> Peer-to-peer WebRTC calls between doctor and patient (Socket.IO signaling), with a live transcript panel captured via the browser's speech recognition.</li>
   <li>🎨 <strong>Responsive UI:</strong> A clean, modern dashboard built with React and styled with DaisyUI/Tailwind.</li>
 </ul>
 
